@@ -52,6 +52,26 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+# Dependency for User Authentication
+async def get_current_user(request: Request, access_token: str = Cookie(None)):
+    if access_token == None:
+        raise HTTPException(status_code=401, detail="Not Authenticated")
+    try:
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=401, detail="Invalid authentication credentials")
+        user = get_user_by_username(username)
+        if user is None:
+            raise HTTPException(
+                status_code=401, detail="Invalid authentication credentials")
+        del user.password
+        return user
+    except JWTError:
+        raise HTTPException(
+            status_code=401, detail="Invalid authentication credentials")
+
 # Function to check the current user is logged in or not
 async def check_current_user(request: Request, access_token: str = Cookie(None)):
     if access_token == None:
@@ -86,3 +106,9 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
                         value=new_access_token, httponly=True)
 
     return {"access_token": new_access_token, "token_type": "bearer"}
+
+# User Logout
+@router.post("/logout")
+async def logout(request: Request, response: Response, current_user: User = Depends(get_current_user)):
+    response.delete_cookie("access_token")
+    return {"message": "Logged Out Successfully"}
