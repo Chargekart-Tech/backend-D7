@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from os import getenv
-# from routers import users
+from routers import users
 
 DEBUG = getenv("BACKEND_DEBUG", "False").lower() in ("true", "1", "t")
 
@@ -28,5 +28,5 @@ else:
 async def index():
     return {"message": "Backend Running!!"}
 
-# Mount the user router on the "/auth" path
-# app.include_router(users.router, prefix="/auth", tags=["auth"])
+# Mount the user router on the "/user" path
+app.include_router(users.router, prefix="/user", tags=["auth", "user"])
