@@ -8,3 +8,15 @@ class User(BaseModel):
     contact: str
     full_name: Optional[str] = None
     password: str
+
+
+# User Login Model
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+# User Login Response Model
+class UserLoginResponse(BaseModel):
+    access_token: str
+    token_type: str
