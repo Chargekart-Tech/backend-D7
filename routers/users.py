@@ -20,9 +20,25 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 240
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
+# Hash password using bcrypt
+def get_password_hash(password: str):
+    if len(password) < 6:
+        raise HTTPException(
+            status_code=400, detail="Password should be atleast 6 characters long")
+    return pwd_context.hash(password)
+
+
 # Verify password using bcrypt
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
+
+
+# Create User in MongoDB
+def create_user(user: User):
+    user.password = get_password_hash(user.password)
+    result = db.users.insert_one(user.dict())
+    return str(result.inserted_id)
+
 
 # Get User from MongoDB by Username
 def get_user_by_username(username: str):
@@ -32,6 +48,16 @@ def get_user_by_username(username: str):
     else:
         return None
 
+
+# Get User from MongoDB by Email
+def get_user_by_email(email: EmailStr):
+    user = db.users.find_one({"email": email})
+    if user:
+        return User(**user)
+    else:
+        return None
+
+
 # Authenticate User by Username and Password
 def authenticate_user(username: str, password: str):
     user = get_user_by_username(username)
@@ -40,6 +66,7 @@ def authenticate_user(username: str, password: str):
     if not verify_password(password, user.password):
         return False
     return user
+
 
 # Create Access Token
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -88,6 +115,30 @@ async def check_current_user(request: Request, access_token: str = Cookie(None))
         return access_token
     except JWTError:
         return None
+
+# User Registration Endpoint
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserLoginResponse)
+async def register(response: Response, user: User, access_token: str = Depends(check_current_user)):
+    if access_token:
+        return {"access_token": access_token, "token_type": "bearer"}
+    # Check if user already exists
+    if get_user_by_username(user.username):
+        response.delete_cookie('session_cookie_key')
+        headers = {"set-cookie": response.headers["set-cookie"]}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Username already registered", headers=headers)
+    if get_user_by_email(user.email):
+        response.delete_cookie('session_cookie_key')
+        headers = {"set-cookie": response.headers["set-cookie"]}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Email already registered", headers=headers)
+    # Create User and Return Response
+    user_id = create_user(user)
+
+    access_token = create_access_token(data={"sub": user.username})
+    response.set_cookie(key="access_token", value=access_token, httponly=True)
+
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # User Login Endpoint
 @router.post("/login", response_model=UserLoginResponse)
