@@ -31,3 +31,5 @@ For checking out the docs for the APIs, please setup and start the service using
 - `/logout` _[POST]_ -> User logout endpoint. Doesn't take any input.
 
 - `/details` _[GET]_ -> Returns user details, based on the authorization cookie. Requires user to be logged in.
+
+- `/change-password` _[POST]_ -> Change currently logged in user password. Takes current password and new password.
