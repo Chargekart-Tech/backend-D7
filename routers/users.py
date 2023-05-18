@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Response, status, Cookie,
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import JWTError, jwt
+import phonenumbers
 from datetime import datetime, timedelta
 from os import getenv
 
@@ -132,6 +133,17 @@ async def register(response: Response, user: User, access_token: str = Depends(c
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Email already registered", headers=headers)
+    
+    try:
+        contact = phonenumbers.parse(user.contact)
+        if not phonenumbers.is_valid_number(contact):
+            response.delete_cookie('session_cookie_key')
+            headers = {"set-cookie": response.headers["set-cookie"]}
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Email already registered", headers=headers)
+    except Exception:
+        raise HTTPException(status_code=500, detail = "An Error Occured!")
+    
     # Create User and Return Response
     user_id = create_user(user)
 
