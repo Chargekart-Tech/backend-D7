@@ -24,7 +24,7 @@ else:
     )
 
 # Backend Index Page - For checking purposes
-@app.get("/")
+@app.get("/", tags=["General"])
 async def index():
     return {"message": "Backend Running!!"}
 
