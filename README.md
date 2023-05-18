@@ -8,11 +8,15 @@ Please go to [https://github.com/ChargeKart/services](https://github.com/ChargeK
 
 ----
 
-For checking out the docs for the APIs, please setup and start the service using main docker-compose configuration. The, go to the URL -> [http://localhost/api/docs/](http://localhost/api/docs#/)
+For checking out the docs for the APIs, please setup and start the service using main docker-compose configuration. The, go to the URL -> 
+
+[http://localhost/api/docs/](http://localhost/api/docs#/)
+
+---
 
 <br/>
 
-## Current APIs
+## APIs
 
 ### **Tag - General**
 
@@ -33,3 +37,17 @@ For checking out the docs for the APIs, please setup and start the service using
 - `/details` _[GET]_ -> Returns user details, based on the authorization cookie. Requires user to be logged in.
 
 - `/change-password` _[POST]_ -> Change currently logged in user password. Takes current password and new password.
+
+----
+
+<br/>
+
+## Models
+
+> ### _User_
+
+- username: string - Unique usernamer
+- email: string -  Valid email
+- contact: string - Valid Phone Number
+- full_name: string - Full Name of the user
+- password: string - Valid Password (Stored in hashed form in db for security)
