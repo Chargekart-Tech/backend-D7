@@ -135,12 +135,17 @@ async def register(response: Response, user: User, access_token: str = Depends(c
                             detail="Email already registered", headers=headers)
     
     try:
-        contact = phonenumbers.parse(user.contact)
+        contact = phonenumbers.parse(user.contact, "IN")
         if not phonenumbers.is_valid_number(contact):
             response.delete_cookie('session_cookie_key')
             headers = {"set-cookie": response.headers["set-cookie"]}
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Email already registered", headers=headers)
+                            detail="Invalid phone number", headers=headers)
+    except phonenumbers.phonenumberutil.NumberParseException:
+        response.delete_cookie('session_cookie_key')
+        headers = {"set-cookie": response.headers["set-cookie"]}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Invalid phone number", headers=headers)
     except Exception:
         raise HTTPException(status_code=500, detail = "An Error Occured!")
     

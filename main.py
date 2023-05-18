@@ -29,4 +29,4 @@ async def index():
     return {"message": "Backend Running!!"}
 
 # Mount the user router on the "/user" path
-app.include_router(users.router, prefix="/user", tags=["auth", "user"])
+app.include_router(users.router, prefix="/user", tags=["user"])
