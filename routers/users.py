@@ -193,3 +193,29 @@ async def check_user(request: Request, access_token: str = Depends(check_current
 async def logout(request: Request, response: Response, current_user: User = Depends(get_current_user)):
     response.delete_cookie("access_token")
     return {"message": "Logged Out Successfully"}
+
+# Change Password
+@router.post("/change-password")
+async def change_password(response: Response, passwords: ChangePasswordInput, current_user: User = Depends(get_current_user)):
+    user = authenticate_user(current_user.username, passwords.current_password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid password")
+
+    if current_user:
+        response.delete_cookie("access_token")
+    
+    hashed_new_password = get_password_hash(passwords.new_password)
+    result = db.users.update_one({"username": current_user.username}, {
+                        "$set": {"password": hashed_new_password}})
+    
+    if not result.modified_count:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update password")
+
+    # Create Access Token and Set Cookie
+    new_access_token = create_access_token(data={"sub": user.username})
+    response.set_cookie(key="access_token",
+                        value=new_access_token, httponly=True)
+
+    return {"message": "Password changed successfully!"}

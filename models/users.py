@@ -20,3 +20,9 @@ class UserLogin(BaseModel):
 class UserLoginResponse(BaseModel):
     access_token: str
     token_type: str
+
+
+# Change Password Input Model
+class ChangePasswordInput(BaseModel):
+    current_password: str
+    new_password: str
