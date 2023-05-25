@@ -1,16 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
+import uuid
 
 # Location Model
 class Location(BaseModel):
-    locid: str
+    locid: str = Field(default_factory=uuid.uuid4)
     name: str
-    latitude: str
-    longitude: str
+    latitude: float
+    longitude: float
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = "India"
-    pincode: Optional[str] = None
+    pincode: Optional[int] = None
 
 class ManyLocationsResponse(BaseModel):
     locations: List[Location] | None
