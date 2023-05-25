@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from os import getenv
-from routers import users
+from routers import users, locations
 
 DEBUG = getenv("BACKEND_DEBUG", "False").lower() in ("true", "1", "t")
 
@@ -30,3 +30,4 @@ async def index():
 
 # Mount the user router on the "/user" path
 app.include_router(users.router, prefix="/user", tags=["User"])
+app.include_router(locations.router, prefix="/locations", tags=["Locations"])

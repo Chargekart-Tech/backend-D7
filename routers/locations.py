@@ -16,7 +16,7 @@ def get_parking_location_by_id(id: int):
         return None
     
 # Endpoint to get all locations
-@router.get("/locations")
+@router.get("/all")
 def get_locations():
     locations = list(db.locations.find({}, {"_id": 0}))
     if len(locations):
