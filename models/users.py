@@ -8,6 +8,10 @@ class User(BaseModel):
     contact: str
     full_name: Optional[str] = None
     password: str
+    car_number: str
+    model_number: str
+    model_year: str
+    battery_capacity: float
 
 
 # User Login Model
