@@ -38,6 +38,14 @@ For checking out the docs for the APIs, please setup and start the service using
 
 - `/change-password` _[POST]_ -> Change currently logged in user password. Takes current password and new password.
 
+### **Tag - Locations**
+
+> Root path - `localhost/api/locations/`
+
+- `/all` _[GET]_ -> 
+
+- `/location/{locid}` _[GET]_ -> 
+
 ----
 
 <br/>
