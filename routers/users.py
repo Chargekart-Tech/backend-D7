@@ -122,6 +122,9 @@ async def check_current_user(request: Request, access_token: str = Cookie(None))
 async def register(response: Response, user: User, access_token: str = Depends(check_current_user)):
     if access_token:
         return {"access_token": access_token, "token_type": "bearer"}
+    
+    user.email = user.email.lower()
+
     # Check if user already exists
     if get_user_by_username(user.username):
         response.delete_cookie('session_cookie_key')
