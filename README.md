@@ -51,3 +51,14 @@ For checking out the docs for the APIs, please setup and start the service using
 - contact: string - Valid Phone Number
 - full_name: string - Full Name of the user
 - password: string - Valid Password (Stored in hashed form in db for security)
+
+> ### _Location_
+
+- locid: string - Unique id for each location, for ease of access in frontend
+- name: string
+- latitude: float
+- longitude: float
+- city: string
+- state: string
+- country: string
+- pincode: int
