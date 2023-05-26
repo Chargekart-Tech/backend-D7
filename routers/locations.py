@@ -32,6 +32,7 @@ def get_details_locid(locid: str):
 
 #Endpoint to add a New Location
 @router.post("/new-location")
-def add_new_location(location: LocationInput):
+def add_new_location(location: LocationInput):    
+    location.locid = str(uuid4())
     db.locations.insert_one(location.dict())
     return {"locid": location.locid}
