@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from uuid import uuid4
 
 from db import db
 from models.locations import *
@@ -28,3 +29,9 @@ def get_locations():
 # def get_details_locid(locid: int, _: str = Depends(get_current_user)):
 def get_details_locid(locid: str):
     return get_parking_location_by_id(locid)
+
+#Endpoint to add a New Location
+@router.post("/new-location")
+def add_new_location(location: LocationInput):
+    db.locations.insert_one(location.dict())
+    return {"locid": location.locid}
