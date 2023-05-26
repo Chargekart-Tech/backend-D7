@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from uuid import uuid4
 
 from db import db
@@ -32,7 +32,15 @@ def get_details_locid(locid: str):
 
 #Endpoint to add a New Location
 @router.post("/new-location")
-def add_new_location(location: LocationInput):    
+def add_new_location(location: LocationInput, response: Response):
+    existing_location = db.locations.find_one({"name": location.name,
+                                               "latitude": location.latitude,
+                                               "longitude": location.longitude},
+                                              {"_id": 0})
+    if existing_location:
+        response.status_code = 409
+        return {"ERROR": "Exact location already exists.", "locid": existing_location["locid"]}
+    
     if(location.pincode and len(str(location.pincode)) != 6):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid Pin Code!")
