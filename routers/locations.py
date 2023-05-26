@@ -6,7 +6,7 @@ from routers.users import check_current_user, get_current_user
 
 router = APIRouter()
 
-def get_parking_location_by_id(id: int):
+def get_parking_location_by_id(id: str):
     try:
         pl = db.locations.find_one({"locid": id}, {"_id": 0})
         if pl:
@@ -25,5 +25,6 @@ def get_locations():
 
 # Endpoint to get a particular location details
 @router.get("/location/{locid}")
-def get_details_locid(locid: int, _: str = Depends(get_current_user)):
+# def get_details_locid(locid: int, _: str = Depends(get_current_user)):
+def get_details_locid(locid: str):
     return get_parking_location_by_id(locid)
