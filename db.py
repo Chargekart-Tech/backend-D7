@@ -10,7 +10,7 @@ MONGO_URI = "mongodb://{}:{}@mongo:{}/".format(
 MONGO_DATABASE = getenv("MONGO_DATABASE", default="mydb")
 
 # instantiate mongo client
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, uuidRepresentation='standard')
 
 # get database
 db = client[MONGO_DATABASE]
