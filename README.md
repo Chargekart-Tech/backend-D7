@@ -46,6 +46,8 @@ For checking out the docs for the APIs, please setup and start the service using
 
 - `/location/{locid}` _[GET]_ -> 
 
+- `/new-location` _[POST]_ -> 
+
 ----
 
 <br/>
@@ -66,11 +68,11 @@ For checking out the docs for the APIs, please setup and start the service using
 
 > ### _Location_
 
-- locid: string - Unique id for each location, for ease of access in frontend
-- name: string
+- locid: string - Unique id for each location, for ease of access in frontend (Auto - Generated)
+- name: string - Name of the Place
 - latitude: float
 - longitude: float
 - city: string
 - state: string
 - country: string
-- pincode: int
+- pincode: int - 6 digit integer pincode of the location
