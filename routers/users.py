@@ -15,7 +15,7 @@ router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT Authentication
-SECRET_KEY = getenv("JWT_SECRET_KEY", "this_is_my_very_secretive_secret")
+SECRET_KEY = getenv("JWT_SECRET_KEY", "this_is_my_very_secretive_secret") + "__d7__"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 240
 
@@ -81,11 +81,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 # Dependency for User Authentication
-async def get_current_user(request: Request, access_token: str = Cookie(None)):
-    if access_token == None:
+async def get_current_user(request: Request, access_token_d7: str = Cookie(None)):
+    if access_token_d7 == None:
         raise HTTPException(status_code=401, detail="Not Authenticated")
     try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(access_token_d7, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
             raise HTTPException(
@@ -101,11 +101,11 @@ async def get_current_user(request: Request, access_token: str = Cookie(None)):
             status_code=401, detail="Invalid authentication credentials")
 
 # Function to check the current user is logged in or not
-async def check_current_user(request: Request, access_token: str = Cookie(None)):
-    if access_token == None:
+async def check_current_user(request: Request, access_token_d7: str = Cookie(None)):
+    if access_token_d7 == None:
         return None
     try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(access_token_d7, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:
             return None
@@ -113,15 +113,15 @@ async def check_current_user(request: Request, access_token: str = Cookie(None))
         if user is None:
             return None
         del user.password
-        return access_token
+        return access_token_d7
     except JWTError:
         return None
 
 # User Registration Endpoint
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserLoginResponse)
-async def register(response: Response, user: User, access_token: str = Depends(check_current_user)):
-    if access_token:
-        return {"access_token": access_token, "token_type": "bearer"}
+async def register(response: Response, user: User, access_token_d7: str = Depends(check_current_user)):
+    if access_token_d7:
+        return {"access_token": access_token_d7, "token_type": "bearer"}
     
     user.email = user.email.lower()
 
@@ -156,15 +156,15 @@ async def register(response: Response, user: User, access_token: str = Depends(c
     user_id = create_user(user)
 
     access_token = create_access_token(data={"sub": user.username})
-    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    response.set_cookie(key="access_token_d7", value=access_token, httponly=True)
 
     return {"access_token": access_token, "token_type": "bearer"}
 
 # User Login Endpoint
 @router.post("/login", response_model=UserLoginResponse)
-async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), access_token: str = Depends(check_current_user)):
-    if access_token:
-        response.delete_cookie("access_token")
+async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), access_token_d7: str = Depends(check_current_user)):
+    if access_token_d7:
+        response.delete_cookie("access_token_d7")
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         response.delete_cookie('session_cookie_key')
@@ -173,7 +173,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
                             detail="Invalid username or password", headers=headers)
     # Create Access Token and Set Cookie
     new_access_token = create_access_token(data={"sub": user.username})
-    response.set_cookie(key="access_token",
+    response.set_cookie(key="access_token_d7",
                         value=new_access_token, httponly=True)
 
     return {"access_token": new_access_token, "token_type": "bearer"}
@@ -185,16 +185,16 @@ async def read_users_me(request: Request, current_user: User = Depends(get_curre
 
 # Get current user or not
 @router.get("/current", response_model=UserLoginResponse)
-async def check_user(request: Request, access_token: str = Depends(check_current_user)):
-    if not access_token:
+async def check_user(request: Request, access_token_d7: str = Depends(check_current_user)):
+    if not access_token_d7:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Unauthorized")
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token_d7, "token_type": "bearer"}
 
 # User Logout
 @router.post("/logout")
 async def logout(request: Request, response: Response, current_user: User = Depends(get_current_user)):
-    response.delete_cookie("access_token")
+    response.delete_cookie("access_token_d7")
     return {"message": "Logged Out Successfully"}
 
 # Change Password
@@ -206,7 +206,7 @@ async def change_password(response: Response, passwords: ChangePasswordInput, cu
                             detail="Invalid password")
 
     if current_user:
-        response.delete_cookie("access_token")
+        response.delete_cookie("access_token_d7")
     
     hashed_new_password = get_password_hash(passwords.new_password)
     result = db.users.update_one({"username": current_user.username}, {
@@ -218,7 +218,7 @@ async def change_password(response: Response, passwords: ChangePasswordInput, cu
 
     # Create Access Token and Set Cookie
     new_access_token = create_access_token(data={"sub": user.username})
-    response.set_cookie(key="access_token",
+    response.set_cookie(key="access_token_d7",
                         value=new_access_token, httponly=True)
 
     return {"message": "Password changed successfully!"}
