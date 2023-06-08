@@ -4,7 +4,7 @@
 
 ---
 
-Please go to [https://github.com/ChargeKart/services](https://github.com/ChargeKart/services) for instructions on setup and running the service.
+Please go to [https://github.com/ChargeKart/services-D7](https://github.com/ChargeKart/services-D7) for instructions on setup and running the service.
 
 ----
 
