@@ -28,7 +28,12 @@ def get_locations():
 @router.get("/location/{locid}")
 # def get_details_locid(locid: int, _: str = Depends(get_current_user)):
 def get_details_locid(locid: str):
-    return get_parking_location_by_id(locid)
+    location = get_parking_location_by_id(locid)
+    if location:
+        return location
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="Location not found!")
 
 #Endpoint to add a New Location
 @router.post("/new-location")
