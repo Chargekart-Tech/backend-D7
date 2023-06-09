@@ -169,7 +169,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     if not user:
         response.delete_cookie('session_cookie_key')
         headers = {"set-cookie": response.headers["set-cookie"]}
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid username or password", headers=headers)
     # Create Access Token and Set Cookie
     new_access_token = create_access_token(data={"sub": user.username})
