@@ -70,8 +70,9 @@ For checking out the docs for the APIs, please setup and start the service using
 
 - locid: string - Unique id for each location, for ease of access in frontend (Auto - Generated)
 - name: string - Name of the Place
-- latitude: float
-- longitude: float
+- coordinates
+    - latitude: float
+    - longitude: float
 - city: string
 - state: string
 - country: string
