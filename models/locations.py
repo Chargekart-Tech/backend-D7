@@ -1,12 +1,15 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
+class Coordinates(BaseModel):
+    latitude: float
+    longitude: float
+
 # Location Model
 class Location(BaseModel):
     locid: str
     name: str
-    latitude: float
-    longitude: float
+    coordinates: Coordinates
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = "India"
@@ -18,8 +21,7 @@ class ManyLocationsResponse(BaseModel):
 class LocationInput(BaseModel):
     locid: Optional[str] = None
     name: str
-    latitude: float
-    longitude: float
+    coordinates: Coordinates
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = "India"

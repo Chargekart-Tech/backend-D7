@@ -39,8 +39,8 @@ def get_details_locid(locid: str):
 @router.post("/new-location")
 def add_new_location(location: LocationInput, response: Response):
     existing_location = db.locations.find_one({"name": location.name,
-                                               "latitude": location.latitude,
-                                               "longitude": location.longitude},
+                                               "latitude": location.coordinates.latitude,
+                                               "longitude": location.coordinates.longitude},
                                               {"_id": 0})
     if existing_location:
         response.status_code = 409
