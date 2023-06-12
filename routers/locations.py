@@ -36,14 +36,14 @@ def get_details_locid(locid: str):
                             detail="Location not found!")
 
 #Endpoint to add a New Location
-@router.post("/new-location")
+@router.post("/new-location", status_code=status.HTTP_201_CREATED)
 def add_new_location(location: LocationInput, response: Response):
     existing_location = db.locations.find_one({"name": location.name,
                                                "latitude": location.coordinates.latitude,
                                                "longitude": location.coordinates.longitude},
                                               {"_id": 0})
     if existing_location:
-        response.status_code = 409
+        response.status_code = status.HTTP_409_CONFLICT
         return {"ERROR": "Exact location already exists.", "locid": existing_location["locid"]}
     
     if(location.pincode and len(str(location.pincode)) != 6):
