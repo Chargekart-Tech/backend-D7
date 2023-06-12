@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, status, Cookie, Request
+from fastapi import APIRouter, HTTPException, Depends, Response, Request, status, Cookie, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -6,6 +6,7 @@ import phonenumbers
 from datetime import datetime, timedelta
 from os import getenv
 import re
+import ast
 
 from models.users import *
 from db import db
@@ -36,9 +37,9 @@ def verify_password(plain_password: str, hashed_password: str):
 
 
 # Create User in MongoDB
-def create_user(user: User):
-    user.password = get_password_hash(user.password)
-    result = db.users.insert_one(user.dict())
+def create_user(user: dict):
+    user["password"] = get_password_hash(user["password"])
+    result = db.users.insert_one(user)
     return str(result.inserted_id)
 
 # Update User in MongoDB
@@ -129,26 +130,27 @@ async def check_current_user(request: Request, access_token_d7: str = Cookie(Non
 
 # User Registration Endpoint
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserLoginResponse)
-async def register(response: Response, user: User, access_token_d7: str = Depends(check_current_user)):
+async def register(request: Request, response: Response, user: User, access_token_d7: str = Depends(check_current_user)):
     if access_token_d7:
+        response.status_code = status.HTTP_304_NOT_MODIFIED
         return {"access_token": access_token_d7, "token_type": "bearer"}
     
     user.email = user.email.lower()
 
     # Check if user already exists
     if get_user_by_username(user.username):
-        # response.delete_cookie('access_token_d7')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Username already registered", headers=headers)
     if get_user_by_email(user.email):
-        # response.delete_cookie('access_token_d7')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Email already registered", headers=headers)
     
     if(bool(re.match('^[a-zA-Z0-9]*$',user.username))==False):
-        # response.delete_cookie('access_token_d7')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
                             detail="Username should only contain alphanumeric characters", headers=headers)
@@ -156,20 +158,23 @@ async def register(response: Response, user: User, access_token_d7: str = Depend
     try:
         contact = phonenumbers.parse(user.contact, "IN")
         if not phonenumbers.is_valid_number(contact):
-            # response.delete_cookie('access_token_d7')
+            response.delete_cookie('access_token_d7')
             headers = {"set-cookie": response.headers["set-cookie"]}
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid phone number", headers=headers)
     except phonenumbers.phonenumberutil.NumberParseException:
-        # response.delete_cookie('access_token_d7')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid phone number", headers=headers)
     except Exception:
         raise HTTPException(status_code=500, detail = "An Error Occured!")
-    
+
+    body = await request.body()
+    user1 = ast.literal_eval(body.decode())
+
     # Create User and Return Response
-    user_id = create_user(user)
+    user_id = create_user(user1)
 
     access_token = create_access_token(data={"sub": user.username})
     response.set_cookie(key="access_token_d7", value=access_token, httponly=True)
