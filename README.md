@@ -28,7 +28,7 @@ For checking out the docs for the APIs, please setup and start the service using
 
 > Root path - `localhost/api/user/`
 
-- `/login` _[POST]_ -> User Login using `username` and `password`. It sets the authorization cookie.
+- `/login` _[POST]_ -> User Login using `username` and `password`. It sets the authorization cookie. Can also send `email` in the variable `username`.
 
 - `/register` _[POST]_ -> New User Registration using the fields of the [User](#user) Model. It sets the authorization cookie.
 

@@ -67,8 +67,11 @@ def get_user_by_email(email: EmailStr):
 
 
 # Authenticate User by Username and Password
-def authenticate_user(username: str, password: str):
-    user = get_user_by_username(username)
+def authenticate_user(username_email: str, password: str):
+    if "@" in username_email:
+        user = get_user_by_email(username_email)
+    else:
+        user = get_user_by_username(username_email)
     if not user:
         return False
     if not verify_password(password, user.password):
