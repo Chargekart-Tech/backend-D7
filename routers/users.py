@@ -127,12 +127,12 @@ async def register(response: Response, user: User, access_token_d7: str = Depend
 
     # Check if user already exists
     if get_user_by_username(user.username):
-        response.delete_cookie('session_cookie_key')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Username already registered", headers=headers)
     if get_user_by_email(user.email):
-        response.delete_cookie('session_cookie_key')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Email already registered", headers=headers)
@@ -140,12 +140,12 @@ async def register(response: Response, user: User, access_token_d7: str = Depend
     try:
         contact = phonenumbers.parse(user.contact, "IN")
         if not phonenumbers.is_valid_number(contact):
-            response.delete_cookie('session_cookie_key')
+            response.delete_cookie('access_token_d7')
             headers = {"set-cookie": response.headers["set-cookie"]}
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid phone number", headers=headers)
     except phonenumbers.phonenumberutil.NumberParseException:
-        response.delete_cookie('session_cookie_key')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid phone number", headers=headers)
@@ -167,7 +167,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
         response.delete_cookie("access_token_d7")
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
-        response.delete_cookie('session_cookie_key')
+        response.delete_cookie('access_token_d7')
         headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid username or password", headers=headers)
