@@ -59,7 +59,7 @@ For checking out the docs for the APIs, please setup and start the service using
 > ### _User_
 
 - username: string - Unique username (Alphanumeric only)
-- email: string -  Valid email
+- email: string -  Valid email (Unique only)
 - contact: string - Valid Phone Number
 - full_name: string - Full Name of the user
 - password: string - Valid Password (Stored in hashed form in db for security)
