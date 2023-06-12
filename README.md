@@ -58,7 +58,7 @@ For checking out the docs for the APIs, please setup and start the service using
 
 > ### _User_
 
-- username: string - Unique username
+- username: string - Unique username (Alphanumeric only)
 - email: string -  Valid email
 - contact: string - Valid Phone Number
 - full_name: string - Full Name of the user
