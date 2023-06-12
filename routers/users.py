@@ -40,6 +40,12 @@ def create_user(user: User):
     result = db.users.insert_one(user.dict())
     return str(result.inserted_id)
 
+# Update User in MongoDB
+def update_user(user: User):
+    user.password = get_password_hash(user.password)
+    result = db.users.replace_one({"username": user.username}, user.dict())
+    return True
+
 
 # Get User from MongoDB by Username
 def get_user_by_username(username: str):
@@ -222,3 +228,36 @@ async def change_password(response: Response, passwords: ChangePasswordInput, cu
                         value=new_access_token, httponly=True)
 
     return {"message": "Password changed successfully!"}
+
+# User Registration Endpoint
+@router.put("/edit", status_code=200)
+async def edit(response: Response, user: User, current_user: User = Depends(get_current_user)):    
+    if user.username != current_user.username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Username cannot be changed")
+
+    # Check if user email already exists
+    user.email = user.email.lower()
+    if user.email != current_user.email and get_user_by_email(user.email):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Email already registered")
+    
+    try:
+        contact = phonenumbers.parse(user.contact, "IN")
+        if not phonenumbers.is_valid_number(contact):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Invalid phone number")
+    except phonenumbers.phonenumberutil.NumberParseException:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Invalid phone number")
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = "An Error Occured!")
+    
+    # Update User and Return Response
+    changed = update_user(user)
+
+    if not changed:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update user details")
+
+    return {"message": "User details updated successfully!"}
