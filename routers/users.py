@@ -43,9 +43,9 @@ def create_user(user: dict):
     return str(result.inserted_id)
 
 # Update User in MongoDB
-def update_user(user: User):
-    user.password = get_password_hash(user.password)
-    result = db.users.replace_one({"username": user.username}, user.dict())
+def update_user(user: dict):
+    user["password"] = get_password_hash(user["password"])
+    result = db.users.replace_one({"username": user["username"]}, user)
     return True
 
 
@@ -246,7 +246,7 @@ async def change_password(response: Response, passwords: ChangePasswordInput, cu
 
 # User Registration Endpoint
 @router.put("/edit", status_code=200)
-async def edit(response: Response, user: User, current_user: User = Depends(get_current_user)):    
+async def edit(request: Request, response: Response, user: User, current_user: User = Depends(get_current_user)):    
     if user.username != current_user.username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Username cannot be changed")
@@ -269,7 +269,9 @@ async def edit(response: Response, user: User, current_user: User = Depends(get_
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = "An Error Occured!")
     
     # Update User and Return Response
-    changed = update_user(user)
+    body = await request.body()
+    user1 = ast.literal_eval(body.decode())
+    changed = update_user(user1)
 
     if not changed:
         raise HTTPException(
