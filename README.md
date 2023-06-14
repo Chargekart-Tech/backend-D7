@@ -71,7 +71,8 @@ For checking out the docs for the APIs, please setup and start the service using
 > ### _Location_
 
 - locid: string - Unique id for each location, for ease of access in frontend (Auto - Generated)
-- name: string - Name of the Place
+- title: string - Name of the Place
+- description: string - Description of the Place
 - coordinates
     - latitude: float
     - longitude: float
