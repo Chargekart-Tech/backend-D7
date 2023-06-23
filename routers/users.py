@@ -139,34 +139,24 @@ async def register(request: Request, response: Response, user: User, access_toke
 
     # Check if user already exists
     if get_user_by_username(user.username):
-        response.delete_cookie('access_token_d7')
-        headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Username already registered", headers=headers)
+                            detail="Username already registered")
     if get_user_by_email(user.email):
-        response.delete_cookie('access_token_d7')
-        headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Email already registered", headers=headers)
+                            detail="Email already registered")
     
     if(bool(re.match('^[a-zA-Z0-9]*$',user.username))==False):
-        response.delete_cookie('access_token_d7')
-        headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
-                            detail="Username should only contain alphanumeric characters", headers=headers)
+                            detail="Username should only contain alphanumeric characters")
     
     try:
         contact = phonenumbers.parse(user.contact, "IN")
         if not phonenumbers.is_valid_number(contact):
-            response.delete_cookie('access_token_d7')
-            headers = {"set-cookie": response.headers["set-cookie"]}
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Invalid phone number", headers=headers)
+                            detail="Invalid phone number")
     except phonenumbers.phonenumberutil.NumberParseException:
-        response.delete_cookie('access_token_d7')
-        headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Invalid phone number", headers=headers)
+                            detail="Invalid phone number")
     except Exception:
         raise HTTPException(status_code=500, detail = "An Error Occured!")
 
@@ -188,10 +178,8 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
         response.delete_cookie("access_token_d7")
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
-        response.delete_cookie('access_token_d7')
-        headers = {"set-cookie": response.headers["set-cookie"]}
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Invalid username or password", headers=headers)
+                            detail="Invalid username or password")
     # Create Access Token and Set Cookie
     new_access_token = create_access_token(data={"sub": user.username})
     response.set_cookie(key="access_token_d7",
