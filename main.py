@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from starlette.middleware.sessions import SessionMiddleware
 from os import getenv
 from routers import users, locations
 
@@ -27,6 +28,9 @@ else:
 @app.get("/", tags=["General"])
 async def index():
     return {"message": "Backend Running!!"}
+
+# Add Session Middleware
+app.add_middleware(SessionMiddleware, secret_key="!secret")
 
 # Mount the user router on the "/user" path
 app.include_router(users.router, prefix="/user", tags=["User"])
