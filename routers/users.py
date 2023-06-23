@@ -214,9 +214,6 @@ async def change_password(request: Request, passwords: ChangePasswordInput, curr
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Invalid password")
-
-    if current_user:
-        request.session.pop('user_access_token_d7', None)
     
     hashed_new_password = get_password_hash(passwords.new_password)
     result = db.users.update_one({"username": current_user.username}, {
@@ -266,3 +263,11 @@ async def edit(request: Request, response: Response, user: User, current_user: U
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update user details")
 
     return {"message": "User details updated successfully!"}
+
+
+"""
+- Add mailing
+- Add forget password API
+- Add Google Authentication 
+    - https://github.com/kolitiri/fastapi-oidc-react
+"""
