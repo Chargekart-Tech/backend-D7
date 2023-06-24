@@ -22,8 +22,7 @@ class UserLogin(BaseModel):
 
 # User Login Response Model
 class UserLoginResponse(BaseModel):
-    access_token: str
-    token_type: str
+    username: str
 
 
 # Change Password Input Model
