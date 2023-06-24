@@ -1,10 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, Request, status, Cookie, Request
+from fastapi import APIRouter, HTTPException, Depends, Response, Request, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
-from jose import JWTError, jwt
 import phonenumbers
-from datetime import datetime, timedelta
-from os import getenv
 import re
 import ast
 
@@ -15,11 +12,6 @@ router = APIRouter()
 
 # Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# JWT Authentication
-SECRET_KEY = getenv("JWT_SECRET_KEY", "this_is_my_very_secretive_secret") + "__d7__"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 240
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -79,63 +71,37 @@ def authenticate_user(username_email: str, password: str):
         return False
     return user
 
-
-# Create Access Token
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
 # Dependency for User Authentication
 async def get_current_user(request: Request):
-    access_token_d7= request.session.get('user_access_token_d7')
-    if access_token_d7 == None:
+    username = request.session.get('username')
+    if username == None:
         raise HTTPException(status_code=401, detail="Not Authenticated")
-    try:
-        payload = jwt.decode(access_token_d7, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
-            raise HTTPException(
-                status_code=401, detail="Invalid authentication credentials")
-        user = get_user_by_username(username)
-        if user is None:
-            raise HTTPException(
-                status_code=401, detail="Invalid authentication credentials")
-        del user.password
-        return user
-    except JWTError:
-        raise HTTPException(
-            status_code=401, detail="Invalid authentication credentials")
+    
+    user = get_user_by_username(username)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    del user.password
+    return user
 
 # Function to check the current user is logged in or not
 async def check_current_user(request: Request):
-    access_token_d7= request.session.get('user_access_token_d7')
-    if access_token_d7 == None:
+    username = request.session.get('username')
+    if username == None:
         return None
-    try:
-        payload = jwt.decode(access_token_d7, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
-            return None
-        user = get_user_by_username(username)
-        if user is None:
-            return None
-        del user.password
-        return access_token_d7
-    except JWTError:
+    
+    user = get_user_by_username(username)
+    if user is None:
         return None
+    
+    return username
 
 # User Registration Endpoint
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserLoginResponse)
-async def register(request: Request, response: Response, user: User, access_token_d7: str = Depends(check_current_user)):
-    if access_token_d7:
+async def register(request: Request, response: Response, user: User, username: str = Depends(check_current_user)):
+    if username:
         response.status_code = status.HTTP_304_NOT_MODIFIED
-        return {"access_token": access_token_d7, "token_type": "bearer"}
+        return {"username": username}
     
     user.email = user.email.lower()
 
@@ -165,28 +131,28 @@ async def register(request: Request, response: Response, user: User, access_toke
     body = await request.body()
     user1 = ast.literal_eval(body.decode())
 
-    # Create User and Return Response
-    user_id = create_user(user1)
+    # Create User and Set Session
+    create_user(user1)
 
-    access_token = create_access_token(data={"sub": user.username})
-    request.session['user_access_token_d7'] = access_token
+    request.session['username'] = user.username
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"username": user.username}
 
 # User Login Endpoint
 @router.post("/login", response_model=UserLoginResponse)
-async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), access_token_d7: str = Depends(check_current_user)):
-    if access_token_d7:
-        request.session.pop('user_access_token_d7', None)
+async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), username: str = Depends(check_current_user)):
+    if username:
+        request.session.pop('username', None)
+    
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid username or password", headers={"set-cookie": ""})
-    # Create Access Token and Set Cookie
-    new_access_token = create_access_token(data={"sub": user.username})
-    request.session['user_access_token_d7'] = new_access_token
+    
+    # Set Session
+    request.session['username'] = user.username
 
-    return {"access_token": new_access_token, "token_type": "bearer"}
+    return {"username": user.username}
 
 # Get Current User Endpoint
 @router.get("/details")
@@ -195,16 +161,16 @@ async def read_users_me(request: Request, current_user: User = Depends(get_curre
 
 # Get current user or not
 @router.get("/current", response_model=UserLoginResponse)
-async def check_user(request: Request, access_token_d7: str = Depends(check_current_user)):
-    if not access_token_d7:
+async def check_user(request: Request, username: str = Depends(check_current_user)):
+    if not username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Unauthorized")
-    return {"access_token": access_token_d7, "token_type": "bearer"}
+    return {"username": username}
 
 # User Logout
 @router.post("/logout")
 async def logout(request: Request, current_user: User = Depends(get_current_user)):
-    request.session.pop('user_access_token_d7', None)
+    request.session.pop('username', None)
     return {"message": "Logged Out Successfully"}
 
 # Change Password
@@ -223,9 +189,8 @@ async def change_password(request: Request, passwords: ChangePasswordInput, curr
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update password")
 
-    # Create Access Token and Set Cookie
-    new_access_token = create_access_token(data={"sub": user.username})
-    request.session['user_access_token_d7'] = new_access_token
+    # Set Session
+    request.session['username'] = user.username
 
     return {"message": "Password changed successfully!"}
 
