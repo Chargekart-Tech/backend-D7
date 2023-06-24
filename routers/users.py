@@ -75,11 +75,11 @@ def authenticate_user(username_email: str, password: str):
 async def get_current_user(request: Request):
     username = request.session.get('username')
     if username == None:
-        raise HTTPException(status_code=401, detail="Not Authenticated")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not Authenticated")
     
     user = get_user_by_username(username)
     if user is None:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
     
     del user.password
     return user
@@ -107,10 +107,10 @@ async def register(request: Request, response: Response, user: User, username: s
 
     # Check if user already exists
     if get_user_by_username(user.username):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Username already registered")
     if get_user_by_email(user.email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Email already registered")
     
     if(bool(re.match('^[a-zA-Z0-9]*$',user.username))==False):
@@ -126,7 +126,7 @@ async def register(request: Request, response: Response, user: User, username: s
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Invalid phone number")
     except Exception:
-        raise HTTPException(status_code=500, detail = "An Error Occured!")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail = "An Error Occured!")
 
     body = await request.body()
     user1 = ast.literal_eval(body.decode())
@@ -139,7 +139,7 @@ async def register(request: Request, response: Response, user: User, username: s
     return {"username": user.username}
 
 # User Login Endpoint
-@router.post("/login", response_model=UserLoginResponse)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=UserLoginResponse)
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), username: str = Depends(check_current_user)):
     if username:
         request.session.pop('username', None)
@@ -195,7 +195,7 @@ async def change_password(request: Request, passwords: ChangePasswordInput, curr
     return {"message": "Password changed successfully!"}
 
 # User Registration Endpoint
-@router.put("/edit", status_code=200)
+@router.put("/edit", status_code=status.HTTP_200_OK)
 async def edit(request: Request, response: Response, user: User, current_user: User = Depends(get_current_user)):    
     if user.username != current_user.username:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
@@ -204,7 +204,7 @@ async def edit(request: Request, response: Response, user: User, current_user: U
     # Check if user email already exists
     user.email = user.email.lower()
     if user.email != current_user.email and get_user_by_email(user.email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Email already registered")
     
     try:
