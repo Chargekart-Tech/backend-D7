@@ -121,6 +121,9 @@ async def edit(request: Request, response: Response, user: User, current_user: U
 
 
 """
+- Add sentry for performance monitoring
+    - https://docs.sentry.io/platforms/python/guides/fastapi/?original_referrer=https%3A%2F%2Ffastapi.tiangolo.com%2F
+- Remove JWT Token from main env file
 - Add mailing
 - Add forget password API
 - Add Google Authentication 
