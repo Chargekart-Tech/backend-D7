@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from uuid import uuid4
 
-from db import db
 from models.locations import *
-from routers.users import check_current_user, get_current_user
+from utils.users import check_current_user, get_current_user
+from db import db
 
 router = APIRouter()
 
@@ -18,8 +18,6 @@ def get_parking_location_by_id(id: str):
         return None
 
 # Endpoint to get all locations
-
-
 @router.get("/all")
 def get_locations():
     locations = list(db.locations.find({}, {"_id": 0}))
@@ -28,8 +26,6 @@ def get_locations():
     return None
 
 # Endpoint to get a particular location details
-
-
 @router.get("/location/{locid}")
 # def get_details_locid(locid: int, _: str = Depends(get_current_user)):
 def get_details_locid(locid: str):
@@ -41,8 +37,6 @@ def get_details_locid(locid: str):
                             detail="Location not found!")
 
 # Endpoint to add a New Location
-
-
 @router.post("/new-location", status_code=status.HTTP_201_CREATED)
 def add_new_location(location: LocationInput, response: Response):
     existing_location = db.locations.find_one({"title": location.title,
